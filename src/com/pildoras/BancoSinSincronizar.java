@@ -43,9 +43,9 @@ class Banco {
             }*/
 
             while (cuentas[cuentaOrigen] < cantidad){
-                // saldoSuficiente.await(); // Mentres que a condición do while sea true, poñemos o fío de execución ao acougo
+                // saldoSuficiente.await(); // Mentres que a condición do while sea true, poñemos o fío de execución ao acougoawait() and signalAll() methods (java.util.concurrent.locks).. More than one condition available
 
-                wait(); // synchronized
+                wait(); // synchronized Only one condition available
             }
 
             System.out.println("* " + Thread.currentThread()); // Amosamos o fío que fai a transferencia
