@@ -26,15 +26,15 @@ class Banco {
             cuentas[i] = 2000; // Cargamos o saldo inicial
         }
 
-        saldoSuficiente = cierreBanco.newCondition(); // Establecemos a condición. Cada vez que creemos un banco, levará implícita a condición (por iso a incluimos no construtor)
+        // saldoSuficiente = cierreBanco.newCondition(); // Establecemos a condición. Cada vez que creemos un banco, levará implícita a condición (por iso a incluimos no construtor)
 
     }
 
-    public void transferencia(int cuentaOrigen, int cuentaDestino, double cantidad) throws InterruptedException {
+    public synchronized void transferencia(int cuentaOrigen, int cuentaDestino, double cantidad) throws InterruptedException {
 
-        cierreBanco.lock(); // Cando un fío chama a este método, o mesmo queda bloqueado mentres ese fío estea facendo uso do método. O seguinte fío quedará ao acougo no entanto.
+        // cierreBanco.lock(); // Cando un fío chama a este método, o mesmo queda bloqueado mentres ese fío estea facendo uso do método. O seguinte fío quedará ao acougo no entanto.
 
-        try {
+        // try {
 /*            if (cuentas[cuentaOrigen] < cantidad) { // Comprobamos que hai saldo dabondo na conta de orixe
                 System.out.println("Saldo insuficiente na conta " + cuentaOrigen + ". Saldo: " + cuentas[cuentaOrigen] + " Importe transferencia: " + cantidad);
                 return;
@@ -43,7 +43,9 @@ class Banco {
             }*/
 
             while (cuentas[cuentaOrigen] < cantidad){
-                saldoSuficiente.await(); // Mentres que a condición do while sea true, poñemos o fío de execución ao acougo
+                // saldoSuficiente.await(); // Mentres que a condición do while sea true, poñemos o fío de execución ao acougo
+
+                wait(); // synchronized
             }
 
             System.out.println("* " + Thread.currentThread()); // Amosamos o fío que fai a transferencia
@@ -56,11 +58,13 @@ class Banco {
 
             System.out.printf(" > Saldo total: %10.2f%n", getSaldoTotal());
 
-            saldoSuficiente.signalAll(); // Cando un fío remata a transferencia, avisa a todos os fíos que están ao acougo de saldo suficiente para que se executen no caso de que xa teñen saldo abondo.
+            // saldoSuficiente.signalAll(); // Cando un fío remata a transferencia, avisa a todos os fíos que están ao acougo de saldo suficiente para que se executen no caso de que xa teñen saldo abondo.
 
-        } finally {
+            notifyAll(); // synchronized
+
+        /*} finally {
             cierreBanco.unlock(); // Desbloqueamos o código cando un fío deixa de executalo
-        }
+        }*/
     }
 
     public double getSaldoTotal(){
@@ -91,7 +95,7 @@ class EjecucionTransferencias implements Runnable{
             while (true) {
                 int paraLaCuenta = (int) (100 * Math.random()); // casting porque random() precisa números enteiros e ignoramos a parte decimal multiplicando por 100
                 double cantidad = cantidadMax * Math.random(); // Almacenamos a cantidade a transferir
-                banco.transferencia(deLaCuenta, paraLaCuenta, cantidad);
+                banco.transferencia(deLaCuenta, paraLaCuenta, cantidad); // Os obxectos de tipo banco son os que establecen o bloqueo do método transferencia();
                 Thread.sleep((int) (Math.random() * 10));
             }
         } catch (InterruptedException e) {
